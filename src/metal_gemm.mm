@@ -1,7 +1,7 @@
 #import <Metal/Metal.h>
 #include "metal_gemm.h"
 
-#define TILE_SIZE 1
+#define TILE_SIZE 32
 
 void gemm_metal(float* A, float* B, float* C, int M, int N, int K) {
     id<MTLDevice> device = MTLCreateSystemDefaultDevice();
@@ -45,7 +45,7 @@ void gemm_metal(float* A, float* B, float* C, int M, int N, int K) {
     [encoder setBuffer:bufferN offset:0 atIndex:4];
     [encoder setBuffer:bufferM offset:0 atIndex:5];
 
-    MTLSize gridSize = MTLSizeMake((M + TILE_SIZE - 1) / TILE_SIZE, (N + TILE_SIZE - 1) / TILE_SIZE, 1);
+    MTLSize gridSize = MTLSizeMake(M, N, 1);
     MTLSize threadGroupSize = MTLSizeMake(TILE_SIZE, TILE_SIZE, 1);
     [encoder dispatchThreads:gridSize threadsPerThreadgroup:threadGroupSize];
 
