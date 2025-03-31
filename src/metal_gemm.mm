@@ -1,7 +1,20 @@
 #import <Metal/Metal.h>
+// #include <Metal/Metal.hpp>
 #include "metal_gemm.h"
 
 #define TILE_SIZE 32
+
+void convertToHalf(const float* src, __fp16* dst, size_t size) {
+    for (size_t i = 0; i < size; i++) {
+        dst[i] = __fp16(src[i]);
+    }
+}
+
+void convertToFloat(const __fp16* src, float* dst, size_t size) {
+    for (size_t i = 0; i < size; i++) {
+        dst[i] = (float)src[i];
+    }
+}
 
 void gemm_metal(float* A, float* B, float* C, int M, int N, int K) {
     id<MTLDevice> device = MTLCreateSystemDefaultDevice();
@@ -26,9 +39,16 @@ void gemm_metal(float* A, float* B, float* C, int M, int N, int K) {
     id<MTLFunction> function = [library newFunctionWithName:@"gemm"];
     id<MTLComputePipelineState> pipeline = [device newComputePipelineStateWithFunction:function error:&error];
 
-    id<MTLBuffer> bufferA = [device newBufferWithBytes:A length:M * K * sizeof(float) options:MTLResourceStorageModeShared];
-    id<MTLBuffer> bufferB = [device newBufferWithBytes:B length:K * N * sizeof(float) options:MTLResourceStorageModeShared];
-    id<MTLBuffer> bufferC = [device newBufferWithLength:M * N * sizeof(float) options:MTLResourceStorageModeShared];
+    __fp16* hA = new __fp16[M * K];
+    __fp16* hB = new __fp16[K * N];
+
+    // convert to half
+    convertToHalf(A, hA, M * K);
+    convertToHalf(B, hB, K * N);
+
+    id<MTLBuffer> bufferA = [device newBufferWithBytes:hA length:M * K * sizeof(__fp16) options:MTLResourceStorageModeShared];
+    id<MTLBuffer> bufferB = [device newBufferWithBytes:hB length:K * N * sizeof(__fp16) options:MTLResourceStorageModeShared];
+    id<MTLBuffer> bufferC = [device newBufferWithLength:M * N * sizeof(__fp16) options:MTLResourceStorageModeShared];
     id<MTLBuffer> bufferK = [device newBufferWithBytes:&K length:sizeof(uint) options:MTLResourceStorageModeShared];
     id<MTLBuffer> bufferN = [device newBufferWithBytes:&N length:sizeof(uint) options:MTLResourceStorageModeShared];
     id<MTLBuffer> bufferM = [device newBufferWithBytes:&M length:sizeof(uint) options:MTLResourceStorageModeShared];
@@ -53,5 +73,12 @@ void gemm_metal(float* A, float* B, float* C, int M, int N, int K) {
     [commandBuffer commit];
     [commandBuffer waitUntilCompleted];
 
-    memcpy(C, bufferC.contents, M * N * sizeof(float));
+    // convert back
+    __fp16* halfResults = (__fp16*)bufferC.contents;
+    convertToFloat(halfResults, C, M * N);
+
+    // memcpy(C, bufferC.contents, M * N * sizeof(__fp16));
+
+    delete[] hA;
+    delete[] hB;
 }

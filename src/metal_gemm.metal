@@ -5,9 +5,9 @@ using namespace metal;
 #define TILE_SIZE 32
 
 kernel void gemm(
-    device const float* A,
-    device const float* B,
-    device float* C,
+    device const half* A,
+    device const half* B,
+    device half* C,
     device const uint* K_ptr,
     device const uint* N_ptr,
     device const uint* M_ptr,
@@ -28,10 +28,10 @@ kernel void gemm(
         return;
     }
     
-    threadgroup float tileA[TILE_SIZE][TILE_SIZE];
-    threadgroup float tileB[TILE_SIZE][TILE_SIZE];
+    threadgroup half tileA[TILE_SIZE][TILE_SIZE];
+    threadgroup half tileB[TILE_SIZE][TILE_SIZE];
     
-    float sum = 0.0f;
+    half sum = 0.0h;
     
     for (uint tileIdx = 0; tileIdx < (K + TILE_SIZE - 1) / TILE_SIZE; tileIdx++) {
         const uint aCol = tileIdx * TILE_SIZE + positionInThreadgroup.y;
@@ -41,14 +41,14 @@ kernel void gemm(
         if (row < M && aCol < K) {
             tileA[positionInThreadgroup.x][positionInThreadgroup.y] = A[row * K + aCol];
         } else {
-            tileA[positionInThreadgroup.x][positionInThreadgroup.y] = 0.0f; // not sure if this is the desired behavior
+            tileA[positionInThreadgroup.x][positionInThreadgroup.y] = 0.0h; // not sure if this is the desired behavior
         }
         
         // load B tile with bounds checking
         if (bRow < K && col < N) {
             tileB[positionInThreadgroup.x][positionInThreadgroup.y] = B[bRow * N + col];
         } else {
-            tileB[positionInThreadgroup.x][positionInThreadgroup.y] = 0.0f; // not sure if this is the desired behavior
+            tileB[positionInThreadgroup.x][positionInThreadgroup.y] = 0.0h; // not sure if this is the desired behavior
         }
         
         // synch all threads before computation
