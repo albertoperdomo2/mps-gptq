@@ -1,20 +1,8 @@
 #import <Metal/Metal.h>
-// #include <Metal/Metal.hpp>
 #include "metal_gemm.h"
+#import "metal_utils.h"
 
 #define TILE_SIZE 32
-
-void convertToHalf(const float* src, __fp16* dst, size_t size) {
-    for (size_t i = 0; i < size; i++) {
-        dst[i] = __fp16(src[i]);
-    }
-}
-
-void convertToFloat(const __fp16* src, float* dst, size_t size) {
-    for (size_t i = 0; i < size; i++) {
-        dst[i] = (float)src[i];
-    }
-}
 
 void gemm_metal(float* A, float* B, float* C, int M, int N, int K) {
     id<MTLDevice> device = MTLCreateSystemDefaultDevice();

@@ -1,6 +1,29 @@
 #import <iostream>
 #include "metal_add.h"
 #include "metal_gemm.h"
+#include "metal_hessian.h"
+
+void test_hessian_approximation() {
+    std::cout << "[ TEST ]: metal_hessian_approximation" << std::endl;
+    int M = 3, N = 2;
+
+    float X[6] = {1.0f, 2.0f, 3.0f, 
+                4.0f, 5.0f, 6.0f};
+
+    float H[9] = {0.0f};
+
+    hessian_approximation_metal(X, H, M, N);
+
+    printf("result:\n");
+    for (int i = 0; i < M; i++) {
+        for (int j = 0; j < M; j++) {
+            printf("%f ", H[i * M + j]);
+        }
+        printf("\n");
+    }
+
+    std::cout << "[ TEST ]: metal_hessian_approximation done!" << std::endl;
+}
 
 void test_tiled_gemm() {
     std::cout << "[ TEST ]: metal_gemm" << std::endl;
@@ -78,6 +101,8 @@ void test_add() {
 }
 
 int main() {
-    test_tiled_gemm();
+    // test_add();
+    // test_tiled_gemm();
+    test_hessian_approximation();
     return 0;
 }
