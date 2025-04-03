@@ -30,7 +30,7 @@ void hessian_approximation_metal(float* X, float* H, int M, int N) {
     // convert to half
     convertToHalf(X, hX, M * N);
 
-    id<MTLBuffer> bufferX = [device newBufferWithBytes:X length:M * N * sizeof(__fp16) options:MTLResourceStorageModeShared];
+    id<MTLBuffer> bufferX = [device newBufferWithBytes:hX length:M * N * sizeof(__fp16) options:MTLResourceStorageModeShared];
     id<MTLBuffer> bufferH = [device newBufferWithLength:M * M * sizeof(__fp16) options:MTLResourceStorageModeShared];
     id<MTLBuffer> bufferN = [device newBufferWithBytes:&N length:sizeof(uint) options:MTLResourceStorageModeShared];
     id<MTLBuffer> bufferM = [device newBufferWithBytes:&M length:sizeof(uint) options:MTLResourceStorageModeShared];
