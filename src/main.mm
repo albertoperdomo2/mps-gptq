@@ -9,10 +9,18 @@ void test_hessian_approximation() {
 
     float X[6] = {1.0f, 2.0f, 3.0f, 
                 4.0f, 5.0f, 6.0f};
-
+    
     float H[9] = {0.0f};
 
-    hessian_approximation_metal(X, H, M, N);
+    // Initial inverse Hessian H_inv (Identity Matrix)
+    float H_inv[9] = {1.0f, 0.0f, 0.0f, 
+                      0.0f, 1.0f, 0.0f, 
+                      0.0f, 0.0f, 1.0f};
+
+    // float H[9] = {0.0f};
+    float u[3] = {0.1f, 0.2f, 0.3f};
+
+    hessian_approximation_metal(X, H, u, M, N);
 
     printf("result:\n");
     for (int i = 0; i < M; i++) {
