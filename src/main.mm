@@ -2,6 +2,47 @@
 #include "metal_add.h"
 #include "metal_gemm.h"
 #include "metal_hessian.h"
+#include "metal_quantize_layer.h"
+
+void test_quantize_layer_metal() {
+    std::cout << "[ TEST ]: metal_quantize_layer" << std::endl;
+
+    const int M = 3;
+
+    // Original weights
+    float W[M] = {-0.6f, 0.4f, 1.0f};
+
+    // Simple diagonal inverse Hessian (identity approximation)
+    float H_inv[M * M] = {
+        1.0f, 0.0f, 0.0f,
+        0.0f, 1.0f, 0.0f,
+        0.0f, 0.0f, 1.0f
+    };
+
+    // Output arrays
+    float W_q[M] = {0.0f};           // quantized weights
+    float error_out[M] = {0.0f};     // optional: stores the quantization error
+
+    // Run Metal quantization kernel
+    quantize_layer_metal(W, H_inv, W_q, error_out, M);
+
+    // Print results
+    std::cout << "input weights:\n";
+    for (int i = 0; i < M; ++i) {
+        printf("%f ", W[i]);
+    }
+    printf("\nquantized weights:\n");
+    for (int i = 0; i < M; ++i) {
+        printf("%f ", W_q[i]);
+    }
+    printf("\nerror output:\n");
+    for (int i = 0; i < M; ++i) {
+        printf("%f ", error_out[i]);
+    }
+    printf("\n");
+
+    std::cout << "[ TEST ]: metal_quantize_layer done!" << std::endl;
+}
 
 void test_hessian_approximation() {
     std::cout << "[ TEST ]: metal_hessian_approximation" << std::endl;
@@ -111,6 +152,7 @@ void test_add() {
 int main() {
     // test_add();
     // test_tiled_gemm();
-    test_hessian_approximation();
+    // test_hessian_approximation();
+    test_quantize_layer_metal();
     return 0;
 }
