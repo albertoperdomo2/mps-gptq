@@ -27,21 +27,15 @@ void quantize_layer_metal(float* W, float* H_inv, float* W_q, float* error_out, 
 
     __fp16* hW = new __fp16[M * 1];
     __fp16* hHinv = new __fp16[M * M];
-    // __fp16* hWq = new __fp16[M * 1];
-    // __fp16* hErrorOut = new __fp16[1];
 
     // convert to half
     convertToHalf(W, hW, M * 1);
     convertToHalf(H_inv, hHinv, M * M);
-    // convertToHalf(W_q, hWq, M * 1);
-    // convertToHalf(error_out, hErrorOut, 1);
 
     id<MTLBuffer> bufferW = [device newBufferWithBytes:hW length:M * sizeof(__fp16) options:MTLResourceStorageModeShared];
     id<MTLBuffer> bufferHinv = [device newBufferWithBytes:hHinv length:M * M * sizeof(__fp16) options:MTLResourceStorageModeShared];
-    // id<MTLBuffer> bufferWq = [device newBufferWithLength:W_q * sizeof(__fp16) options:MTLResourceStorageModeShared];
-    // id<MTLBuffer> bufferErrorOut = [device newBufferWithLength:error_out * sizeof(__fp16) options:MTLResourceStorageModeShared];
     id<MTLBuffer> bufferWq = [device newBufferWithLength:M * sizeof(__fp16) options:MTLResourceStorageModeShared];
-    id<MTLBuffer> bufferErrorOut = [device newBufferWithLength: sizeof(__fp16) options:MTLResourceStorageModeShared];
+    id<MTLBuffer> bufferErrorOut = [device newBufferWithLength:sizeof(__fp16) options:MTLResourceStorageModeShared];
     id<MTLBuffer> bufferM = [device newBufferWithBytes:&M length:sizeof(uint) options:MTLResourceStorageModeShared];
 
     // Create command buffer and encoder
@@ -55,7 +49,7 @@ void quantize_layer_metal(float* W, float* H_inv, float* W_q, float* error_out, 
     [encoder setBuffer:bufferErrorOut offset:0 atIndex:3];
     [encoder setBuffer:bufferM offset:0 atIndex:4];
 
-    MTLSize gridSize = MTLSizeMake(M, M, 1);
+    MTLSize gridSize = MTLSizeMake(M, 1, 1);
     MTLSize threadGroupSize = MTLSizeMake(1, 1, 1);
     [encoder dispatchThreads:gridSize threadsPerThreadgroup:threadGroupSize];
 

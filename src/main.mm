@@ -36,9 +36,7 @@ void test_quantize_layer_metal() {
         printf("%f ", W_q[i]);
     }
     printf("\nerror output:\n");
-    for (int i = 0; i < M; ++i) {
-        printf("%f ", error_out[i]);
-    }
+    printf("%f ", error_out[0]);
     printf("\n");
 
     std::cout << "[ TEST ]: metal_quantize_layer done!" << std::endl;
